@@ -26,10 +26,6 @@
       color: white;
     }
 
-    /* =========================
-       MAIN GAME WORLD
-       ========================= */
-
     #game {
       position: relative;
       width: 100vw;
@@ -52,13 +48,8 @@
         );
     }
 
-    /* =========================
-       GAME TITLE
-       ========================= */
-
     #title {
       position: absolute;
-
       top: 22px;
       left: 0;
       width: 100%;
@@ -67,7 +58,6 @@
 
       font-size: clamp(25px, 7vw, 42px);
       font-weight: 900;
-
       letter-spacing: 4px;
 
       color: #d9fbff;
@@ -85,38 +75,19 @@
 
       0%, 100% {
         transform: scale(1);
-        text-shadow:
-          0 2px 0 #17495c,
-          0 5px 12px rgba(0, 0, 0, 0.7),
-          0 0 10px rgba(105, 238, 255, 0.9),
-          0 0 25px rgba(55, 206, 255, 0.65);
       }
 
       50% {
         transform: scale(1.025);
-        text-shadow:
-          0 2px 0 #17495c,
-          0 5px 12px rgba(0, 0, 0, 0.7),
-          0 0 18px rgba(145, 248, 255, 1),
-          0 0 40px rgba(55, 206, 255, 0.9);
       }
 
     }
-
-    /* =========================
-       PLAYER
-       ========================= */
 
     #player {
       position: absolute;
 
       width: 48px;
       height: 48px;
-
-      left: 50%;
-      bottom: 145px;
-
-      transform: translateX(-50%);
 
       border-radius: 50%;
 
@@ -138,11 +109,7 @@
         0 0 45px rgba(31, 154, 207, 0.45);
 
       z-index: 10;
-
-      transition: transform 0.08s linear;
     }
-
-    /* Aura around player */
 
     #player::before {
 
@@ -185,10 +152,6 @@
 
     }
 
-    /* =========================
-       INFORMATION HUD
-       ========================= */
-
     #info {
 
       position: absolute;
@@ -215,10 +178,6 @@
       font-weight: bold;
       color: #aaf4ff;
     }
-
-    /* =========================
-       JOYSTICK
-       ========================= */
 
     #joystick {
 
@@ -277,10 +236,6 @@
       z-index: 31;
     }
 
-    /* =========================
-       BUBBLES
-       ========================= */
-
     .bubble {
 
       position: absolute;
@@ -304,7 +259,7 @@
     @keyframes bubbleRise {
 
       0% {
-        transform: translateY(0) translateX(0);
+        transform: translateY(0);
         opacity: 0;
       }
 
@@ -323,12 +278,8 @@
 
     }
 
-    /* Different bubble sizes and positions */
-
     .b1 {
       left: 8%;
-      width: 7px;
-      height: 7px;
       animation-duration: 7s;
     }
 
@@ -358,15 +309,9 @@
 
     .b5 {
       left: 82%;
-      width: 8px;
-      height: 8px;
       animation-duration: 8s;
       animation-delay: 1.5s;
     }
-
-    /* =========================
-       LIGHT RAYS
-       ========================= */
 
     .light-ray {
 
@@ -398,10 +343,6 @@
       left: 55%;
       transform: rotate(-9deg);
     }
-
-    /* =========================
-       JAVASCRIPT-GENERATED
-       ========================= */
 
     .particle {
 
@@ -444,35 +385,23 @@
 
   <div id="game">
 
-    <!-- Atmospheric light -->
-
     <div class="light-ray ray1"></div>
     <div class="light-ray ray2"></div>
-
-    <!-- Game title -->
 
     <div id="title">
       AURIONS UNLEASHED
     </div>
-
-    <!-- Game information -->
 
     <div id="info">
       ⭐ Score:
       <span id="score">0</span>
     </div>
 
-    <!-- Player -->
-
     <div id="player"></div>
-
-    <!-- Virtual joystick -->
 
     <div id="joystick">
       <div id="stick"></div>
     </div>
-
-    <!-- Bubbles -->
 
     <div class="bubble b1"></div>
     <div class="bubble b2"></div>
@@ -482,29 +411,25 @@
 
   </div>
 
-
   <script>
-
-    /* =================================
-       GAME STATE
-       ================================= */
 
     let score = 0;
 
-    let playerX = window.innerWidth / 2;
-    let playerY = window.innerHeight - 145;
+    let playerX = window.innerWidth / 2 - 24;
+    let playerY = window.innerHeight - 193;
+
+    let joystickActive = false;
+
+    let joystickX = 0;
+    let joystickY = 0;
 
     const player = document.getElementById("player");
-    const scoreDisplay = document.getElementById("score");
-
-    /* =================================
-       PLAYER POSITION
-       ================================= */
+    const joystick = document.getElementById("joystick");
+    const stick = document.getElementById("stick");
 
     function updatePlayer() {
 
       player.style.left = playerX + "px";
-
       player.style.top = playerY + "px";
 
     }
@@ -512,15 +437,119 @@
     updatePlayer();
 
 
-    /* =================================
-       CREATE ATMOSPHERIC PARTICLES
-       ================================= */
+    function movePlayer() {
+
+      if (joystickActive) {
+
+        const speed = 5;
+
+        playerX += joystickX * speed;
+        playerY += joystickY * speed;
+
+      }
+
+      const maxX = window.innerWidth - 48;
+      const maxY = window.innerHeight - 48;
+
+      playerX = Math.max(0, Math.min(playerX, maxX));
+      playerY = Math.max(0, Math.min(playerY, maxY));
+
+      updatePlayer();
+
+    }
+
+
+    function handleJoystick(clientX, clientY) {
+
+      const rect = joystick.getBoundingClientRect();
+
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      let dx = clientX - centerX;
+      let dy = clientY - centerY;
+
+      const maxDistance = 31;
+
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > maxDistance) {
+
+        dx = (dx / distance) * maxDistance;
+        dy = (dy / distance) * maxDistance;
+
+      }
+
+      joystickX = dx / maxDistance;
+      joystickY = dy / maxDistance;
+
+      stick.style.left =
+        (29 + dx) + "px";
+
+      stick.style.top =
+        (29 + dy) + "px";
+
+    }
+
+
+    joystick.addEventListener("pointerdown", (event) => {
+
+      joystickActive = true;
+
+      joystick.setPointerCapture(event.pointerId);
+
+      handleJoystick(
+        event.clientX,
+        event.clientY
+      );
+
+    });
+
+
+    joystick.addEventListener("pointermove", (event) => {
+
+      if (!joystickActive) return;
+
+      handleJoystick(
+        event.clientX,
+        event.clientY
+      );
+
+    });
+
+
+    joystick.addEventListener("pointerup", () => {
+
+      joystickActive = false;
+
+      joystickX = 0;
+      joystickY = 0;
+
+      stick.style.left = "29px";
+      stick.style.top = "29px";
+
+    });
+
+
+    joystick.addEventListener("pointercancel", () => {
+
+      joystickActive = false;
+
+      joystickX = 0;
+      joystickY = 0;
+
+      stick.style.left = "29px";
+      stick.style.top = "29px";
+
+    });
+
 
     function createParticles() {
 
       for (let i = 0; i < 30; i++) {
 
-        const particle = document.createElement("div");
+        const particle =
+          document.createElement("div");
 
         particle.className = "particle";
 
@@ -539,19 +568,17 @@
         document
           .getElementById("game")
           .appendChild(particle);
+
       }
+
     }
 
     createParticles();
 
 
-    /* =================================
-       GAME LOOP
-       ================================= */
-
     function gameLoop() {
 
-      updatePlayer();
+      movePlayer();
 
       requestAnimationFrame(gameLoop);
 
@@ -560,17 +587,13 @@
     gameLoop();
 
 
-    /* =================================
-       SCREEN RESIZE
-       ================================= */
-
     window.addEventListener("resize", () => {
 
       playerX =
-        Math.min(playerX, window.innerWidth - 25);
+        Math.min(playerX, window.innerWidth - 48);
 
       playerY =
-        Math.min(playerY, window.innerHeight - 25);
+        Math.min(playerY, window.innerHeight - 48);
 
       updatePlayer();
 
